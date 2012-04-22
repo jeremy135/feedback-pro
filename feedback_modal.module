@@ -1,0 +1,91 @@
+<?php
+function feedback_modal_menu() {
+  $items = array();
+  $items['feedback_modal/%ctools_js'] = array (
+    'page callback' => 'feedback_modal_ctools_form',
+    'page arguments' => array(1),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+function feedback_modal_block_info() {
+	$blocks['feedback_modal'] = array(
+		'info' => 'Feedback Block Link',
+		'cache' => DRUPAL_NO_CACHE,
+	);
+	return $blocks;
+}
+
+function feedback_modal_block_view($delta = '') {
+	if ($delta == 'feedback_modal') {
+		$output =   ctools_modal_text_button(t('Feedback'), 'feedback_modal/nojs', t('Pl'), 'ctools-feedback-modal-modal');
+		$block = array(
+			'content' => $output,
+		);
+	}
+	return $block;
+}
+function feedback_modal_init() {
+     // Include the CTools tools that we need.
+	ctools_include('modal');
+  ctools_include('ajax');
+  
+
+    // Add CTools' javascript to the page.
+  ctools_modal_add_js();
+	ctools_add_js('ajax-responder');
+
+    // Create our own javascript that will be used to theme a modal.
+  $modal_style = array(
+    'feedback_modal' => array(
+	    /*'modalSize' => array(
+        'type' => 'fixed',
+				'width' => 500,
+				'height' => 300,
+	    ),*/
+        'modalOptions' => array(
+        'opacity' => .5,
+        'background-color' => '#000',
+	    ),
+	    'animation' => 'fadeIn',
+	    'modalTheme' => 'CToolsFeedbackModal',
+	    'throbber' => theme('image', array('path' => ctools_image_path('ajax-loader.gif', 'feedback_modal'), 'alt' => t('Loading...'), 'title' => t('Loading'))),
+	),
+    );
+
+  drupal_add_js($modal_style, 'setting');
+
+  ctools_add_js('feedback_modal', 'feedback_modal');
+  ctools_add_css('feedback_modal', 'feedback_modal');
+}
+function feedback_modal_ctools_form($js = NULL) {
+	
+	
+    if (!$js) {
+        return drupal_get_form('feedback_form');
+    }
+    
+    ctools_include('modal');
+    ctools_include('ajax');
+		ctools_modal_add_js();
+		ctools_add_js("ajax-responder");
+		
+    $form_state = array(
+      'title' => t('Feedback'),
+      'ajax' => TRUE,
+    );
+    $commands = ctools_modal_form_wrapper('feedback_form', $form_state);
+    //dsm($form_state);
+    if (!empty($form_state['executed'])) {
+      // We'll just overwrite the form output if it was successful.
+       $commands = array();
+      
+        $commands[] = ctools_modal_command_display(t("Sending form"), "Отправка формы...");
+      
+        $commands[] = ctools_ajax_command_reload();
+     }
+    
+    print ajax_render($commands);
+    exit;
+}

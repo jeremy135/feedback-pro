@@ -1,0 +1,82 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function feedback_schema() {
+ $schema['feedback'] = array(
+    'description' => 'The base table for order.',
+    'fields' => array(
+      'fid' => array(
+        'description' => '',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'fio' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+      ),
+     'mail' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+      ),
+     'subject' => array(
+        'description' => '',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => '1',
+      ),
+     'message' => array(
+        'description' => '',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+    ),
+    'unique keys' => array(
+      'fid' => array('fid'),
+    ),
+    'foreign keys' => array(
+      'feedback' => array(
+        'table' => 'feedback_subj',
+        'columns' => array('subject' => 'sid'),
+      ),
+    ),
+    'primary key' => array('fid'),
+  );
+  $schema['feedback_subj'] = array(
+    'description' => '',
+    'fields' => array(
+      'fsid' => array(
+        'description' => '',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'subject' => array(
+        'description' => "",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      
+    ),
+    'primary key' => array('fsid'),
+  );
+
+  return $schema;
+ 
+}
+function feedback_install() {
+  db_insert('feedback_subj')->fields(array('subject','Без темы'))->execute();
+}

@@ -1,0 +1,11 @@
+; $Id$
+name = Feedback
+description = Обратная связь
+package = J Custom Modules
+core = 7.x
+configure = admin/feedback/settings
+
+files[] = feedback.module
+files[] = feedback.admin.inc
+
+version = "7.x-1.0"

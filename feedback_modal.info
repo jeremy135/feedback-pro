@@ -1,0 +1,13 @@
+; $Id$
+name = Feedback Modal
+description = Обратная связь в модальном окне
+package = J Custom Modules
+core = 7.x
+
+dependencies[] = feedback
+dependencies[] = ctools
+
+files[] = feedback.module
+files[] = feedback_modal.module
+
+version = "7.x-dev"

@@ -1,0 +1,243 @@
+<?php
+
+
+function feedback_menu() {
+	$items['admin/feedback'] = array(
+		'title' => 'Обратная связь',
+		'page callback' => 'feedback_list',
+		'access arguments' => array('administer feedback'),
+		'file' => 'feedback.admin.inc',
+		'type' => MENU_NORMAL_ITEM,
+	);
+	$items['admin/feedback/list'] = array(
+		'title' => 'Обратная связь',
+		'page callback' => 'feedback_list',
+		'access arguments' => array('administer feedback'),
+		'file' => 'feedback.admin.inc',
+		'type' => MENU_DEFAULT_LOCAL_TASK,
+	);
+	$items['admin/feedback/settings'] = array(
+		'title' => t('Settings'),
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array("feedback_settings_mail"),
+		'access arguments' => array('administer order'),
+		'file' => 'feedback.admin.inc',
+		'type' => MENU_LOCAL_TASK,
+	);
+	$items['admin/feedback/subj'] = array(
+		'title' => 'Темы',
+		'page callback' => 'feedback_subj_list',
+		'access arguments' => array('administer feedback'),
+		'file' => 'feedback.admin.inc',
+		'type' => MENU_LOCAL_TASK,
+	);
+	$items['admin/feedback/addr'] = array(
+		'title' => 'Адрес',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('feedback_settings'),
+		'access arguments' => array('administer feedback'),
+		'file' => 'feedback.admin.inc',
+		'type' => MENU_LOCAL_TASK,
+	);
+	$items['admin/feedback/subj/add'] = array(
+		'title' => 'Добавить тему',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array("feedback_addsubj_form"),
+		'access arguments' => array('administer feedback'),
+		'file' => 'feedback.admin.inc',
+		'type' => MENU_LOCAL_ACTION,
+	);
+	$items['admin/feedback/delete/%'] = array(
+		'title' => 'Обратная связь',
+		'page callback' => 'feedback_delete',
+		'access arguments' => array('administer feedback'),
+		'page arguments' => array(3),
+		'file' => 'feedback.admin.inc',
+		'type' => MENU_NORMAL_ITEM,
+	);
+	
+	$items['admin/feedback/delete-subj/%'] = array(
+		'title' => 'Обратная связь',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array("feedback_subj_delete_form", 3),
+		'access arguments' => array('administer feedback'),
+		'file' => 'feedback.admin.inc',
+		'type' => MENU_CALLBACK,
+	);
+	
+	$items['feedback'] = array(
+		'title' => variable_get('feedback_title', 'Обратная связь'),
+		'page callback' => 'feedback_form_view',
+		'access callback' => 1,
+	);
+	
+//	$items['admin/feedback/%/download'] = array(
+//		'page callback' => 'feedback_file_download',
+//		'page arguments' => array(2),
+//		'access arguments' => array('administer users'),
+//		'type' => MENU_CALLBACK,
+//	);
+	return $items;
+}
+
+function feedback_permission() {
+	return array(
+		'administer feedback' => array(
+			'title' => t('Administer feedback'),
+			'description' => t('Allows to access feedback data.'),
+		),
+	);
+}
+
+function feedback_form_view(){
+	$form = drupal_get_form('feedback_form', 'page');
+	return drupal_render($form);
+}
+
+
+
+function feedback_form($form, &$form_state, $type = 'page') {
+	$path = drupal_get_path('module', 'feedback');
+	/*  drupal_add_js($path . '/scripts/j.js', 'file');*/
+  drupal_add_css($path . '/css/feedback.css', 'file');
+	
+	$data = variable_get('feedback_addr');
+	$result = db_select('feedback_subj', 'fs')->fields('fs')->execute();
+	$options = array();
+	foreach($result as $o) {
+		$options[$o->fsid] = $o->subject;
+	}
+	if($type == 'block') {
+		$form['label'] = array(
+			'#markup' => "<div class='h2'>". variable_get('feedback_block_title', 'Обратная связь') ."</div>",
+		);
+	}
+	if($type == 'block' && variable_get('feedback_block_text', 1)  ) {
+		$form['text'] = array(
+			'#markup' => $data,
+		);
+	}elseif($type == 'page' && variable_get('feedback_page_text', 1)) {
+		$form['text'] = array(
+			'#markup' => $data,
+		);
+	}
+	$form['star'] = array(
+		'#markup' => "<div ><span class='star'>*</span> - обязательные для заполнения поля</div>",
+	);
+	if(variable_get('feedback_1_enabled', 1)):
+		$form['fio'] = array(
+			'#type' => 'textfield',
+			'#title' => variable_get('feedback_field_1_name', 'Имя'),
+			'#size' => 40,
+			'#maxlength' => 45,
+			'#required' => variable_get('feedback_1_required', 1),
+		);
+	endif;
+	if(variable_get('feedback_2_enabled', 1)):
+		$form['mail'] = array(
+			'#type' => 'textfield',
+			'#title' => variable_get('feedback_field_2_name', 'E-mail'),
+			'#size' => 40,
+			'#maxlength' => 45,
+			'#required' => variable_get('feedback_2_required', 1),
+		);
+	endif;
+	if(variable_get('feedback_3_enabled', 1)):
+		$form['subject'] = array(
+			'#type' => 'select',
+			'#title' => variable_get('feedback_field_3_name', 'Тема'),
+			'#options' => $options,
+			'#required' => variable_get('feedback_3_required', 1),
+				 /* '#type' => 'hidden',
+					'#value' => '1',*/
+		);
+	endif;
+	$form['message'] = array(
+		'#type' => 'textarea',
+		'#title' => variable_get('feedback_4_name', 'Сообщение'),
+		'#size' => 40,
+		'#maxlength' => 250,
+		'#required' => TRUE,
+	);
+
+	$form['submit'] = array(
+		'#id' => 'submit',
+		'#type' => 'submit',
+		'#value' => 'Отправить',
+	);
+	return $form;
+}
+
+function feedback_form_validate($form, &$form_state) {
+	if(variable_get('feedback_2_valid', 1)):
+		if(!valid_email_address($form_state['values']['mail'])){
+					form_set_error('mail', 'Mail is invalid.');
+		}
+	endif;
+}
+
+function feedback_form_submit($form, &$form_state) {
+
+	$fields = array(
+		'created' => REQUEST_TIME,
+		'fio' => ($form_state['values']['fio']) ? $form_state['values']['fio'] : '',
+//		'file' => ($file) ? $file->fid : NULL,
+		'mail' => ($form_state['values']['mail']) ? $form_state['values']['mail'] : '',
+		'subject' => ($form_state['values']['subject']) ? $form_state['values']['subject'] : '',
+		'message' => $form_state['values']['message'],
+	);
+	db_insert('feedback')->fields($fields)->execute();
+	
+	$user = user_load(1);
+	if(variable_get('feedback_3_enabled', 1)){
+		$fields['subj'] = $form_state['complete form']['subject']['#options'][$form_state['values']['subject']];
+	}
+	$data = array(
+			'type' => 'mail_notify',
+			'mail' => (variable_get('feedback_mail_notification')) ? variable_get('feedback_mail_notification') : $user->mail,
+	);
+	feedback_sendmail($data, $fields);
+  drupal_set_message('Ваше сообщение отправлено.');
+
+	$form_state['redirect'] = '<front>';
+}
+
+
+function feedback_sendmail($data, $fields) {
+	drupal_mail('feedback', $data['type'], $data['mail'], language_default(), $fields);
+}
+function feedback_block_info() {
+	$blocks['feedback'] = array(
+		'info' => 'Feedback Block',
+		'cache' => DRUPAL_NO_CACHE,
+	);
+	return $blocks;
+}
+
+function feedback_block_view($delta = '') {
+	if ($delta == 'feedback') {
+		$output = drupal_get_form('feedback_form', 'block');
+		$block = array(
+			'content' => $output,
+		);
+	}
+	return $block;
+}
+function feedback_mail($key, &$message, $params) {
+	if ($key == 'mail_notify') {
+		$body = t('Поступило новое сообщение на сайте !site.');
+		$message['subject'] = 'Обратная связь.';
+		$message['body'][] = $body;
+		if(variable_get('feedback_1_enabled', 1)):
+			$message['body'][] =  variable_get('feedback_field_1_name', 'Имя').': ' . $params['fio'];
+		endif;
+		if(variable_get('feedback_2_enabled', 1)):
+			$message['body'][] = variable_get('feedback_field_2_name', 'E-mail').': ' .  $params['mail'];
+		endif;
+		if(variable_get('feedback_3_enabled', 1)):
+			$message['body'][] = variable_get('feedback_field_3_name', 'E-mail').': ' .  $params['subj'];
+		endif;
+		$message['body'][] = variable_get('feedback_4_name', 'Сообщение').': ' . $params['message'];	
+	}
+}
+
