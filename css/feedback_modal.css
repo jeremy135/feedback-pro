@@ -1,0 +1,45 @@
+.fields_box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.star {
+    color: red;
+}
+#feedback-block {
+    position: fixed;
+    left: 50%;
+    margin-left: -250px;
+    width : 500px;
+    top: 10%;
+    z-index: 10000;
+    background: #fff;
+    padding: 25px;
+    -webkit-border-radius: 15px;
+    -moz-border-radius: 15px;
+    border-radius: 15px;
+    text-align: left;
+
+}
+.popups-close .close {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    /* background: white;*/
+    right: 10px;
+    top: 10px;
+    display: block;
+    background: transparent url(/modules/overlay/images/close.png) no-repeat 0 0;
+}
+#modal-title {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#feedback-block .messages {
+    font-size: 11px;
+}
+
+#block-feedback-modal-feedback-modal {
+    padding-left: 45px;
+}
