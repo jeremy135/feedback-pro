@@ -19,7 +19,7 @@ function feedback_modal_block_info() {
 
 function feedback_modal_block_view($delta = '') {
 	if ($delta == 'feedback_modal') {
-		$output =   ctools_modal_text_button(t('Feedback'), 'feedback_modal/nojs', t('Pl'), 'ctools-feedback-modal-modal');
+		$output =   ctools_modal_text_button(t('Feedback'), 'feedback_modal/nojs', t('Pl'), 'ctools-modal-feedback_modal');
 		$block = array(
 			'content' => $output,
 		);
@@ -68,8 +68,8 @@ function feedback_modal_ctools_form($js = NULL) {
     
     ctools_include('modal');
     ctools_include('ajax');
-		ctools_modal_add_js();
-		ctools_add_js("ajax-responder");
+	ctools_modal_add_js();
+	ctools_add_js("ajax-responder");
 		
     $form_state = array(
       'title' => t('Feedback'),
